@@ -9,10 +9,6 @@ import { resolvers } from './prisma/generated/type-graphql';
 import { authChecker } from "./auth/auth-checker"
 import { Context } from './auth/context.interface'
 
-// interface Context {
-//   prisma: PrismaClient;
-//   req: any
-// }
 
 async function main() {
 
@@ -34,6 +30,7 @@ async function main() {
       const ctx: Context = {
         // create mocked user in context
         // in real app you would be mapping user from `req.user` or sth
+        prisma,
         user: {
           id: 1,
           name: "Sample user",
@@ -55,6 +52,8 @@ async function main() {
       algorithms: ["HS256"],
     }),
   );
+
+  await server.start();
 
   server.applyMiddleware({ app, path: urlPath});
 

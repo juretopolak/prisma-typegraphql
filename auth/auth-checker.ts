@@ -1,5 +1,5 @@
 
-import { AuthChecker } from "../interfaces/AuthChecker";
+import { AuthChecker } from "type-graphql";
 import { Context } from "./context.interface";
 
 // create auth checker function
