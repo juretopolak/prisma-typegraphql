@@ -1,18 +1,24 @@
 import 'reflect-metadata';
-import express from "express";
-import { ApolloServer, gql } from "apollo-server-express";
-import { buildSchema } from 'type-graphql';
 import path from 'path';
+import { ApolloServer, CorsOptions } from 'apollo-server';
 import { PrismaClient } from '@prisma/client';
-import { expressjwt as jwt } from "express-jwt";
+import { buildSchema, Authorized } from 'type-graphql';
 import { resolvers } from './prisma/generated/type-graphql';
-import { authChecker } from "./auth/auth-checker"
+import { ResolversEnhanceMap, applyResolversEnhanceMap } from './prisma/generated/type-graphql';
+import { authChecker } from './auth/auth-checker'
 import { Context } from './auth/context.interface'
+import { env } from 'process';
 
+const bootstrap = async () => {
 
-async function main() {
-
-  const app = express();
+  const resolversEnhanceMap: ResolversEnhanceMap = {
+    User: {
+      users: [Authorized('ADMIN','KRNEKI')],
+      user: [Authorized('KRNEKI')]
+    },
+  };
+  
+  applyResolversEnhanceMap(resolversEnhanceMap);
 
   const schema = await buildSchema({
     resolvers,
@@ -21,46 +27,39 @@ async function main() {
     authChecker,
   });
 
+  const freeCors: CorsOptions = {
+    allowedHeaders: '*',
+    methods: 'GET, POST',
+    origin: '*',
+  };
+
   const prisma = new PrismaClient();
   await prisma.$connect();
 
   const server = new ApolloServer({
     schema,
+    cors: freeCors,
     context: () => {
       const ctx: Context = {
-        // create mocked user in context
-        // in real app you would be mapping user from `req.user` or sth
         prisma,
         user: {
           id: 1,
-          name: "Sample user",
-          roles: ["REGULAR"],
+          name: 'Sample user',
+          roles: ['ADMIN'],
         },
       };
       return ctx;
     }
-    //context: (): Context => ({ req, prisma }) => {},
   });
 
-  const urlPath = "/graphql";
+  const port = env.PORT ?? 4000;
 
-  app.use(
-    urlPath,
-    jwt({
-      secret: "TypeGraphQL",
-      credentialsRequired: false,
-      algorithms: ["HS256"],
-    }),
-  );
-
-  await server.start();
-
-  server.applyMiddleware({ app, path: urlPath});
-
-  app.listen({ port: 4000 }, () =>
-    console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`),
-  );
+  const { url } = await server.listen(port);
+  console.log(`Server is running, GraphQL Playground available at ${url}`);
 
 }
 
-main().catch(console.error);
+bootstrap().catch(console.error);
+
+// https://prisma.typegraphql.com/docs/advanced/additional-decorators
+// https://typegraphql.com/docs/authorization.html
