@@ -34,9 +34,18 @@ model Profile {
 }
 
 model User {
-  id      Int      @id @default(autoincrement())
-  email   String   @unique
-  name    String?
-  posts   Post[]
-  profile Profile?
+  id       Int      @id @default(autoincrement())
+  email    String   @unique
+  name     String?
+  /// @TypeGraphQL.omit(output: true)
+  password String
+  role     UserRole @default(User)
+  posts    Post[]
+  profile  Profile?
+}
+
+enum UserRole {
+  User
+  Moderator
+  Admin
 }

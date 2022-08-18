@@ -5,16 +5,38 @@
         "es2021": true
     },
     "extends": [
-        "airbnb-base"
+        "airbnb-base",
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended-requiring-type-checking",
+        "plugin:@typescript-eslint/recommended"
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
         "ecmaVersion": "latest"
     },
     "plugins": [
-        "@typescript-eslint"
+        "@typescript-eslint",
+        "type-graphql"
     ],
     "rules": {
         "import/prefer-default-export": "off",
-    }
+        "import/extensions": "off",
+        "import/no-unresolved": "off",
+        "class-methods-use-this": "off",
+        "@typescript-eslint/no-unsafe-argument": "off",
+        "import/no-extraneous-dependencies": [
+            "error", {
+                "devDependencies": [
+                    "webpack.config.ts"
+                ]
+            }
+        ]
+    },
+    "overrides": [{
+        "files": ["*.ts"],
+        "parserOptions": {
+            "project": ["./tsconfig.json"]
+        }
+    }]
 }
